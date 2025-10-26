@@ -29,9 +29,7 @@ export function connectAndSubscribe() {
 
             const { foodName } = JSON.parse(payload.toString());
 
-            if (tableId && !isNaN(tableId) && foodName) {
-                addFoodToTable(tableId, foodName);
-            }
+            if (tableId && !isNaN(tableId) && foodName) addFoodToTable(tableId, foodName);
         } catch (e) {
             console.error('MQTT Message Processing Error: ', e, ' Payload: ', payload.toString());
         }

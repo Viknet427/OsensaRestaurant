@@ -20,6 +20,10 @@ export const restaurantState = $state({
     isConnected: false,
 });
 
+export function setConnectionStatus(status: boolean) {
+    restaurantState.isConnected = status;
+}
+
 export function addFoodToTable(tableId: number, foodName: string) {
     const table = restaurantState.tables.find((t) => t.id === tableId);
     if (table) {
@@ -29,8 +33,4 @@ export function addFoodToTable(tableId: number, foodName: string) {
         });
         console.log(`State updated: Food "${foodName}" added to Table ${tableId}`)
     }
-}
-
-export function setConnectionStatus(status: boolean) {
-    restaurantState.isConnected = status;
 }
