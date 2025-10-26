@@ -18,8 +18,8 @@ export function connectAndSubscribe() {
 
         client!.subscribe(FOOD_READY_TOPIC_WILDCARD, { qos: 2 }, (err) => {
             if (err) console.error('MQTT Subscription Error: ', err)
+            else console.log("MQTT: Connected, Subscribed to food-ready topics!")
         });
-        console.log("MQTT: Connected, Subscribed to food-ready topics!")
     });
 
     client.on('message', (topic, payload) => {
@@ -45,7 +45,7 @@ export function connectAndSubscribe() {
 
 export function publishOrder(tableId: number, foodName: string) {
     if (!client || !restaurantState.isConnected) {
-        console.error('Cannot publish: Client not connected.');
+        console.error('Cannot publish: client is not connected.');
         return;
     }
 
@@ -54,11 +54,8 @@ export function publishOrder(tableId: number, foodName: string) {
         foodName,
     });
 
-    client.publish(ORDER_TOPIC, payload, { qos: 0}, (err) => {
-        if (err) {
-            console.error('MQTT Publish Error: ', err);
-        } else {
-            console.log(`MQTT: Published order from Table ${tableId}: ${foodName}`);
-        }
+    client.publish(ORDER_TOPIC, payload, { qos: 2 }, (err) => {
+        if (err) console.error('MQTT Publish Error: ', err);
+        else console.log(`MQTT: Published order from Table ${tableId}: ${foodName}`);
     });
 }
