@@ -16,7 +16,7 @@ export function connectAndSubscribe() {
         console.log('MQTT: Connected to Broker, Subscribing to food-ready topics...');
         setConnectionStatus(true);
 
-        client!.subscribe(FOOD_READY_TOPIC_WILDCARD, { qos: 0 }, (err) => {
+        client!.subscribe(FOOD_READY_TOPIC_WILDCARD, { qos: 2 }, (err) => {
             if (err) console.error('MQTT Subscription Error: ', err)
         });
         console.log("MQTT: Connected, Subscribed to food-ready topics!")
