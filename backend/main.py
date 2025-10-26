@@ -22,7 +22,6 @@ async def cook_food(table_id: int, food_name: str, client: aiomqtt.Client):
 
     payload = json.dumps({
         "foodName": food_name,
-        "tableId": table_id,
     })
 
     await client.publish(food_ready_topic, payload=payload)
