@@ -24,7 +24,7 @@ async def cook_food(table_id: int, food_name: str, client: aiomqtt.Client):
         "foodName": food_name,
     })
 
-    await client.publish(food_ready_topic, payload=payload)
+    await client.publish(food_ready_topic, qos=2, payload=payload)
     logging.info(f"Chef finished: Published '{food_name}' to {food_ready_topic}.")
 
 async def main():
@@ -37,7 +37,7 @@ async def main():
     ) as client:
         logging.info("MQTT: Connected to Broker.")
 
-        await client.subscribe(ORDER_TOPIC)
+        await client.subscribe(ORDER_TOPIC, qos=2)
         logging.info(f"MQTT: Subscribed to listener topic: {ORDER_TOPIC}")
 
         async for message in client.messages:
