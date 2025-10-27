@@ -2,7 +2,7 @@ import mqtt from 'mqtt';
 import { restaurantState, addFoodToTable, setConnectionStatus } from "./state.svelte";
 
 // Broker and Topics
-const BROKER_URL = 'ws://broker.hivemq.com:8000/mqtt';
+const BROKER_URL = 'wss://broker.hivemq.com:8884/mqtt';
 const ORDER_TOPIC = 'osensa/orders';
 const FOOD_READY_TOPIC_WILDCARD = 'osensa/table/+/food';
 
