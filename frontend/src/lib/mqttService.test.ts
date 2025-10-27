@@ -6,6 +6,7 @@ const mockClient = vi.hoisted(() => {
         subscribe: vi.fn(),
         publish: vi.fn(),
         connect: vi.fn(),
+        end: vi.fn(),
     };
 })
 
@@ -23,6 +24,7 @@ vi.mock(import("mqtt"), async (importOriginal) => {
         },
         on: mockClient.on,
         subscribe: mockClient.subscribe,
+        end: mockClient.end,
     };
 })
 
@@ -30,7 +32,6 @@ vi.useFakeTimers();
 
 beforeEach(async () => {
     vi.clearAllMocks();
-
     vi.resetModules();
 
     mockClient.on.mockImplementation((event, handler) => {
@@ -58,6 +59,7 @@ beforeEach(async () => {
             on: mockClient.on,
             subscribe: mockClient.subscribe,
             publish: mockClient.publish,
+            end: mockClient.end,
         };
     });
 })
@@ -181,3 +183,19 @@ test('publishOrder does nothing if not connected', async () => {
 
     expect(mockClient.publish).not.toHaveBeenCalled();
 });
+
+test('disconnect properly ends mqttClient', async () => {
+    const mqttService = await import('./mqttService');
+    const state = await import('./state.svelte');
+
+    mqttService.connectAndSubscribe();
+    await vi.advanceTimersByTimeAsync(10);
+
+    expect(state.restaurantState.isConnected).toBe(true);
+
+    mqttService.disconnect();
+    expect(mockClient.end).toBeCalledTimes(1);
+    await vi.advanceTimersByTimeAsync(10);
+
+    expect(state.restaurantState.isConnected).toBe(false);
+})

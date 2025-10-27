@@ -63,7 +63,6 @@ export function disconnect() {
 
     console.log('MQTT: Disconnecting from Broker...');
     client.end();
-
-    if (client) console.log('MQTT: Disconnection Unsuccessful...');
-    else console.log('MQTT: Successfully disconnected.');
+    client = null;
+    setConnectionStatus(false);
 }
