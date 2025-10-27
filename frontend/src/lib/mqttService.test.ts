@@ -10,6 +10,7 @@ const mockClient = vi.hoisted(() => {
 })
 
 let messageHandler: (topic: string, payload: Buffer) => void;
+let errorHandler: (err: Error) => void;
 
 // @ts-ignore
 vi.mock(import("mqtt"), async (importOriginal) => {
@@ -39,6 +40,9 @@ beforeEach(async () => {
                 break;
             case 'message':
                 messageHandler = handler;
+                break;
+            case 'error':
+                errorHandler = handler;
                 break;
             default:
                 break;
@@ -129,6 +133,22 @@ test('connectAndSubscribe does not process invalid ready food message', async ()
     const updatedTable4 = state.restaurantState.tables.find(t => t.id === 4)!;
     expect(updatedTable4.foodItems).toHaveLength(0);
 
+})
+
+test('connectAndSubscribe resets connection status on error', async () => {
+    const mqttService = await import('./mqttService');
+    const state = await import('./state.svelte');
+
+    mqttService.connectAndSubscribe();
+    await vi.advanceTimersByTimeAsync(10);
+
+    expect(state.restaurantState.isConnected).toBe(true);
+
+    const testError = new Error('Fake internet problem.');
+
+    errorHandler(testError);
+
+    expect(state.restaurantState.isConnected).toBe(false);
 })
 
 test('publishOrder calls client.publish with correct payload', async () => {
