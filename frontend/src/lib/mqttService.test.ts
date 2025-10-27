@@ -70,6 +70,18 @@ test('connectAndSubscribe initializes client and sets status', async () => {
     );
 });
 
+test('connectAndSubscribe does nothing when client is initialized', async () => {
+    const mqttService = await import('./mqttService');
+
+    mqttService.connectAndSubscribe();
+    await vi.advanceTimersByTimeAsync(10);
+
+    mqttService.connectAndSubscribe();
+    await vi.advanceTimersByTimeAsync(10);
+
+    expect(mockClient.connect).toHaveBeenCalledTimes(1);
+});
+
 test('publishOrder calls client.publish with correct payload', async () => {
     const mqttService = await import('./mqttService');
     const state = await import('./state.svelte');
