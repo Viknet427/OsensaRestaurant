@@ -3,11 +3,9 @@ import json
 import aiomqtt
 import random
 import logging
-
 import certifi
 from dotenv import load_dotenv
 import os
-import ssl
 
 # Define logging settings
 logging.basicConfig(level=logging.INFO,
