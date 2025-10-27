@@ -3,18 +3,21 @@ import json
 import aiomqtt
 import random
 import logging
+
+import certifi
 from dotenv import load_dotenv
 import os
+import ssl
 
 # Define logging settings
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s - %(levelname)s - %(message)s')
 
 # LOAD ENV VARIABLES
-load_dotenv(dotenv_path="../")
+load_dotenv(dotenv_path="../.env")
 
 BROKER_HOSTNAME = os.getenv("BROKER_HOSTNAME")
-BROKER_PORT = os.getenv("BROKER_PORT")
+BROKER_PORT = int(os.getenv("BROKER_PORT"))
 ORDER_TOPIC = os.getenv("ORDER_TOPIC")
 
 # Function responsible for cooking the food and publishing the ready food to the table.
@@ -50,6 +53,9 @@ async def main():
         hostname=BROKER_HOSTNAME,
         port=BROKER_PORT,
         transport="websockets",
+        tls_params=aiomqtt.TLSParameters(
+            ca_certs=certifi.where(),
+        ),
     ) as client:
         logging.info("MQTT: Connected to Broker.")
 
