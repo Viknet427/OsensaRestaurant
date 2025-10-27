@@ -57,3 +57,13 @@ export function publishOrder(tableId: number, foodName: string) {
         else console.log(`MQTT: Published order from Table ${tableId}: ${foodName}`);
     });
 }
+
+export function disconnect() {
+    if (!client) return;
+
+    console.log('MQTT: Disconnecting from Broker...');
+    client.end();
+
+    if (client) console.log('MQTT: Disconnection Unsuccessful...');
+    else console.log('MQTT: Successfully disconnected.');
+}

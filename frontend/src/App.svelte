@@ -1,7 +1,7 @@
 <script lang="ts">
-    import { onMount } from "svelte";
+    import { onDestroy, onMount } from "svelte";
     import { restaurantState } from "./lib/state.svelte";
-    import { connectAndSubscribe, publishOrder } from "./lib/mqttService";
+    import { connectAndSubscribe, publishOrder, disconnect } from "./lib/mqttService";
 
     onMount(() => {
         connectAndSubscribe();
@@ -19,6 +19,10 @@
             publishOrder(tableId, foodName.trim());
         }
     }
+
+    onDestroy(() => {
+        disconnect();
+    });
 </script>
 
 <main class="restaurant-layout">
