@@ -1,11 +1,7 @@
 asyncio
-json
 paho-mqtt
 aiomqtt
-random
 logging
 certifi
 dotenv
-os
 pytest
-unittest.mock
