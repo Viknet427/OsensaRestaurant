@@ -9,6 +9,8 @@ const mockClient = vi.hoisted(() => {
     };
 })
 
+let messageHandler: (topic: string, payload: Buffer) => void;
+
 // @ts-ignore
 vi.mock(import("mqtt"), async (importOriginal) => {
     const actual = await importOriginal();
@@ -31,8 +33,15 @@ beforeEach(async () => {
     vi.resetModules();
 
     mockClient.on.mockImplementation((event, handler) => {
-        if (event === 'connect') {
-            setTimeout(() => handler(), 0);
+        switch (event) {
+            case 'connect':
+                setTimeout(() => handler(), 0);
+                break;
+            case 'message':
+                messageHandler = handler;
+                break;
+            default:
+                break;
         }
     });
 
@@ -81,6 +90,26 @@ test('connectAndSubscribe does nothing when client is initialized', async () => 
 
     expect(mockClient.connect).toHaveBeenCalledTimes(1);
 });
+
+test('connectAndSubscribe processes a ready food message', async () => {
+    const mqttService = await import('./mqttService');
+    const state = await import('./state.svelte');
+
+    mqttService.connectAndSubscribe();
+    await vi.advanceTimersByTimeAsync(10);
+
+    const messageTopic = 'osensa/table/3/food';
+    const messagePayload = JSON.stringify({ foodName: 'Sushi' });
+
+    const initialTable3Items = state.restaurantState.tables.find(t => t.id === 3)!;
+    expect(initialTable3Items.foodItems).toHaveLength(0);
+
+    messageHandler(messageTopic, Buffer.from(messagePayload));
+
+    const updatedTable3 = state.restaurantState.tables.find(t => t.id === 3)!;
+    expect(updatedTable3.foodItems).toHaveLength(1)
+    expect(updatedTable3.foodItems[0].name).toBe('Sushi');
+})
 
 test('publishOrder calls client.publish with correct payload', async () => {
     const mqttService = await import('./mqttService');
