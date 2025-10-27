@@ -1,7 +1,6 @@
 asyncio
 paho-mqtt
 aiomqtt
-logging
 certifi
 dotenv
 pytest
