@@ -101,14 +101,34 @@ test('connectAndSubscribe processes a ready food message', async () => {
     const messageTopic = 'osensa/table/3/food';
     const messagePayload = JSON.stringify({ foodName: 'Sushi' });
 
-    const initialTable3Items = state.restaurantState.tables.find(t => t.id === 3)!;
-    expect(initialTable3Items.foodItems).toHaveLength(0);
+    const initialTable3 = state.restaurantState.tables.find(t => t.id === 3)!;
+    expect(initialTable3.foodItems).toHaveLength(0);
 
     messageHandler(messageTopic, Buffer.from(messagePayload));
 
     const updatedTable3 = state.restaurantState.tables.find(t => t.id === 3)!;
     expect(updatedTable3.foodItems).toHaveLength(1)
     expect(updatedTable3.foodItems[0].name).toBe('Sushi');
+})
+
+test('connectAndSubscribe does not process invalid ready food message', async () => {
+    const mqttService = await import('./mqttService');
+    const state = await import('./state.svelte');
+
+    mqttService.connectAndSubscribe();
+    await vi.advanceTimersByTimeAsync(10);
+
+    const messageTopic = 'osensa/table/5/food';
+    const messagePayload = JSON.stringify({ invalidName: 'Ramen' });
+
+    const initialTable4 = state.restaurantState.tables.find(t => t.id === 4)!;
+    expect(initialTable4.foodItems).toHaveLength(0);
+
+    messageHandler(messageTopic, Buffer.from(messagePayload));
+
+    const updatedTable4 = state.restaurantState.tables.find(t => t.id === 4)!;
+    expect(updatedTable4.foodItems).toHaveLength(0);
+
 })
 
 test('publishOrder calls client.publish with correct payload', async () => {
