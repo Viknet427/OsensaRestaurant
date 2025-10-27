@@ -23,9 +23,11 @@ async def cook_food(table_id: int, food_name: str, client: aiomqtt.Client):
     payload = json.dumps({
         "foodName": food_name,
     })
-
-    await client.publish(food_ready_topic, qos=2, payload=payload)
-    logging.info(f"Chef finished: Published '{food_name}' to {food_ready_topic}.")
+    try:
+        await client.publish(food_ready_topic, qos=2, payload=payload)
+        logging.info(f"Chef finished: Published '{food_name}' to {food_ready_topic}.")
+    except Exception as e:
+        logging.error(f"Chef error: Failed to publish to {food_ready_topic}: {e}")
 
 async def main():
     logging.info("Starting Backend. Connecting...")
@@ -54,6 +56,7 @@ async def main():
 
                 if not isinstance(table_id, int) or not isinstance(food_name, str):
                     logging.warning(f"MQTT: Received invalid order payload: {payload}")
+                    continue
 
                 asyncio.create_task(cook_food(table_id, food_name, client))
 
