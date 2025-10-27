@@ -15,15 +15,20 @@ const initialTables: Table[] = [
     { id: 4, foodItems: [] },
 ];
 
+// Make restaurantState a reactive variable so updates to it will get rendered
 export const restaurantState = $state({
     tables: initialTables,
     isConnected: false,
 });
 
+
+// Setter function for changing isConnected
 export function setConnectionStatus(status: boolean) {
     restaurantState.isConnected = status;
 }
 
+// Adds a new ready food item to a specific table in restaurantState.
+// If the tableId is not found, the function silently exits.
 export function addFoodToTable(tableId: number, foodName: string) {
     const table = restaurantState.tables.find((t) => t.id === tableId);
     if (table) {

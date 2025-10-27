@@ -1,13 +1,16 @@
 <script lang="ts">
     import { onDestroy, onMount } from "svelte";
-    import { restaurantState } from "./lib/state.svelte";
+    import { restaurantState } from "./lib/state.svelte"; // Svelte reactive state
     import { connectAndSubscribe, publishOrder, disconnect } from "./lib/mqttService";
 
+    // Connect to MQTT Broker on startup
     onMount(() => {
         connectAndSubscribe();
     });
 
+    // Function to handle when the on-order button is clicked
     function handleOrder(tableId: number) {
+        // Do not attempt to send an order when the MQTTClient is not connected
         if (!restaurantState.isConnected) {
             alert("Cannot place order: MQTT not connected.");
             return;
@@ -20,6 +23,7 @@
         }
     }
 
+    // Disconnect from MQTT Broker before shutdown
     onDestroy(() => {
         disconnect();
     });
@@ -29,6 +33,7 @@
     <h1>OSENSA Restaurant</h1>
 
     <p class="status-indictaor">
+        <!-- Displays the Connection Status of the MQTT Client to the User -->
         Connection Status:
         <span class="{restaurantState.isConnected ? 'status-connected' : 'status-disconnected'}">
             {restaurantState.isConnected ? '✅ Connected' : '❌ Disconnected'}
@@ -36,10 +41,12 @@
     </p>
 
     <div class="tables-container">
+        <!-- Each Table gets its own Table-Card which Displays the Info for that Table -->
         {#each restaurantState.tables as table (table.id)}
             <div class="table-card">
                 <h2>Table {table.id}</h2>
 
+                <!-- Order Button is disabled if the MQTTClient is not Connected -->
                 <button
                     onclick={() => handleOrder(table.id)}
                     disabled={!restaurantState.isConnected}

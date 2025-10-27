@@ -25,7 +25,9 @@
     "vitest-svelte-kit": "^0.0.7"
   },
   "dependencies": {
+    "dotenv": "^17.2.3",
     "mqtt": "^5.14.1",
+    "ts-node": "^10.9.2",
     "vitest": "^4.0.3"
   }
 }
