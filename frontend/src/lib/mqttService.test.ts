@@ -1,97 +1,102 @@
 import { test, expect, beforeEach, vi } from 'vitest';
-import { connectAndSubscribe, publishOrder } from "./mqttService";
-import { restaurantState, setConnectionStatus } from "./state.svelte";
 
-vi.mock('mqtt', () => {
-    const spies = {
+const mockClient = vi.hoisted(() => {
+    return {
         on: vi.fn(),
         subscribe: vi.fn(),
         publish: vi.fn(),
         connect: vi.fn(),
     };
+})
 
-    (globalThis as any).__MQTT_SPIES = spies;
-
+// @ts-ignore
+vi.mock(import("mqtt"), async (importOriginal) => {
+    const actual = await importOriginal();
     return {
+        ...actual,
         default: {
-            connect: spies.connect,
+            connect: mockClient.connect,
+            publish: mockClient.publish,
         },
+        on: mockClient.on,
+        subscribe: mockClient.subscribe,
     };
-});
-
-function getSpies() {
-    return (globalThis as any).__MQTT_SPIES;
-}
+})
 
 vi.useFakeTimers();
 
-beforeEach(() => {
-    const spies = getSpies();
-
+beforeEach(async () => {
     vi.clearAllMocks();
 
-    spies.on.mockImplementation((event, handler) => {
+    vi.resetModules();
+
+    mockClient.on.mockImplementation((event, handler) => {
         if (event === 'connect') {
             setTimeout(() => handler(), 0);
         }
     });
 
-    spies.subscribe.mockImplementation((topic, options, callback) => callback(null));
+    mockClient.subscribe.mockImplementation((topic, options, callback) => callback(null));
 
-    spies.connect.mockImplementation(() => ({
-        on: spies.on,
-        subscribe: spies.subscribe,
-        publish: spies.publish,
-        end: vi.fn(),
-    }));
+    mockClient.publish.mockImplementation((topic, payload, options, callback) => callback(null));
 
-    setConnectionStatus(false);
-    restaurantState.tables.forEach(t => t.foodItems = []);
+    mockClient.connect.mockImplementation((BrokerUrl) => {
+        return {
+            on: mockClient.on,
+            subscribe: mockClient.subscribe,
+            publish: mockClient.publish,
+        };
+    });
 })
 
 test('connectAndSubscribe initializes client and sets status', async () => {
-    const spies = getSpies();
+    const mqttService = await import('./mqttService');
+    const state = await import('./state.svelte');
 
-    connectAndSubscribe();
+    const restaurantState = state.restaurantState;
 
-    expect(spies.connect).toHaveBeenCalledTimes(1);
+    mqttService.connectAndSubscribe();
+
+    expect(mockClient.connect).toHaveBeenCalledTimes(1);
 
     await vi.advanceTimersByTimeAsync(10);
 
     expect(restaurantState.isConnected).toBe(true);
 
-    expect(spies.subscribe).toHaveBeenCalledWith(
+    expect(mockClient.subscribe).toHaveBeenCalledWith(
         'osensa/table/+/food',
-        expect.anything(),
+        { qos: 2 },
         expect.any(Function),
     );
 });
 
-test('publishOrder calls client.publish with correct payload', () => {
-    const spies = getSpies();
+test('publishOrder calls client.publish with correct payload', async () => {
+    const mqttService = await import('./mqttService');
+    const state = await import('./state.svelte');
 
-    connectAndSubscribe();
-    setConnectionStatus(true);
+    mqttService.connectAndSubscribe();
+    state.setConnectionStatus(true);
 
     const tableId = 3;
     const foodName = 'Pizza';
 
-    publishOrder(tableId, foodName);
+    mqttService.publishOrder(tableId, foodName);
 
-    expect(spies.publish).toHaveBeenCalledWith(
+    expect(mockClient.publish).toHaveBeenCalledWith(
         'osensa/orders',
         JSON.stringify({ tableId, foodName }),
-        expect.anything(),
+        { qos: 2 },
         expect.any(Function),
     );
 });
 
-test('publishOrder does nothing if not connected', () => {
-    const spies = getSpies();
+test('publishOrder does nothing if not connected', async () => {
+    const mqttService = await import('./mqttService');
+    const state = await import('./state.svelte');
 
-    setConnectionStatus(false);
+    state.setConnectionStatus(false);
 
-    publishOrder(1, 'Steak');
+    mqttService.publishOrder(1, 'Steak');
 
-    expect(spies.publish).not.toHaveBeenCalled();
+    expect(mockClient.publish).not.toHaveBeenCalled();
 });
